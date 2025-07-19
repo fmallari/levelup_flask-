@@ -58,14 +58,18 @@ def show_profile():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    ###handle user registration###
-
     form = UserForm()
     if form.validate_on_submit():
         name = form.username.data
         pwd = form.password.data
-        new_user = User.register(name, pwd)
 
+        # check if user already exists
+        existing_user = User.query.filter_by(username=name).first()
+        if existing_user:
+            flash("Username already taken. Please choose another one.")
+            return render_template('register.html', form=form)
+
+        new_user = User.register(name, pwd)
         db.session.add(new_user)
         db.session.commit()
         session['user_id'] = new_user.id
@@ -73,8 +77,8 @@ def register():
         flash("Welcome! You have successfully created your profile")
         return redirect('/profile')
 
-
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=['GET','POST'])
 def login_user():
