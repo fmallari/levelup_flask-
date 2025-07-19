@@ -1,4 +1,5 @@
-from flask import Flask, render_template, redirect, session, flash, g
+from flask import Flask, render_template, redirect, session, flash, g, request
+from api_client import search_exercises, fetch_gif
 from models import connect_db, db, User, Workout, Nutrition
 from forms import UserForm, WorkoutForm, NutritionForm
 
@@ -135,6 +136,31 @@ def add_workout():
 
     else:
         return render_template('users/add_workout.html', form=form)
+
+#######################################################
+
+# add exercisedb api #
+
+@app.route('/search', methods=['GET', 'POST'])
+def search_workouts():
+    results = []
+    query = ""
+    
+    if request.method == 'POST':
+        query = request.form['query']
+        results = search_exercises(query)
+        if results:
+            app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
+        else:
+            app.logger.debug("No results returned")
+    return render_template('search.html', query=query, results=results)
+
+
+@app.route('/images')
+def show_images():
+    images = fetch_gif()
+    return render_template('images.html', images=images)
+
 
 if __name__ == '__main__':
     app.secret_key = "some-secret-key"

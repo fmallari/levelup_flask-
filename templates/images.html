@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2 class="mb-4 text-center">Random Exercise Images</h2>
+
+  {% if images %}
+    <div class="row">
+      {% for img_url in images %}
+        <div class="col-md-4 mb-3 text-center">
+          <img src="{{ img_url }}" class="img-fluid rounded" alt="Exercise GIF">
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No exercise images available right now. Try again later!</p>
+  {% endif %}
+{% endblock %}

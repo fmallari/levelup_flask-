@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1 class="mb-4 text-center">Search for a Workout</h1>
+
+  <form method="POST" class="mb-5">
+    <div class="input-group">
+      <input type="text" class="form-control" name="query" placeholder="e.g. push up, squat" value="{{ query }}">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+  </form>
+
+  {% if results %}
+    <h3>Results:</h3>
+    <div class="row">
+      {% for workout in results %}
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm">
+            <img src="{{ workout.gifUrl }}" class="card-img-top" alt="{{ workout.name }}">
+            <div class="card-body">
+              <h5 class="card-title text-capitalize">{{ workout.name }}</h5>
+              <p class="card-text"><strong>Body Part:</strong> {{ workout.bodyPart }}</p>
+              <p class="card-text"><strong>Equipment:</strong> {{ workout.equipment }}</p>
+              <p class="card-text"><strong>Target:</strong> {{ workout.target }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif query %}
+    <p>No workouts found for "{{ query }}". Try another search.</p>
+  {% endif %}
+{% endblock %}
