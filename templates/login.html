@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="display-6">Login</h1>
-<p class="lead"><a href="/register">Create New Account Here</a></p> 
+<div class="container mt-5" style="max-width: 500px;">
+  <h1 class="display-6 mb-4">Login</h1>
+  <p class="lead"><a href="/register">Create a new account here</a></p>
 
-<form method="POST">
-
+  <form method="POST" novalidate>
     {{ form.hidden_tag() }}
 
-    {% for field in form 
-        if field.widget.input_type != 'hidden' %}
-    <p>
-        {{ field.label }}
-        {{ field(class_="form-control") }}
+    {% for field in form if field.widget.input_type != 'hidden' %}
+      <div class="mb-3">
+        {{ field.label(class="form-label") }}
+        {{ field(class="form-control", placeholder=field.label.text) }}
 
         {% for error in field.errors %}
-        <span class="text-danger">{{ error }}</span>
+          <div class="form-text text-danger">{{ error }}</div>
         {% endfor %}
-    </p>
+      </div>
     {% endfor %}
 
-    <button class="btn btn-success" type="submit">Login</button>
-</form>
+    <button type="submit" class="btn btn-success w-100">Login</button>
+  </form>
+</div>
 {% endblock %}
