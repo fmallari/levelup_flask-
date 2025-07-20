@@ -1,4 +1,4 @@
-/* body{
+body{
     margin: 0;
     padding: 0;
     background-color: whitesmoke;
@@ -22,40 +22,6 @@
     overflow: hidden;
     border-radius: 10px;
 }
-
-/* .columns-3 {
-    width: 100%;
-    display:flex;
-    flex-wrap: wrap;
-    margin: auto;
-    text-align: center;
-    justify-content: space-between;
-    background-color: rgba(0,0,0,.5);
-    color: black;
-    opacity: .8;
-}
-/* columns */
-/* .columns-3 > * {
-    width: calc(100% / 3);
-}
-
-.columns-3 .h3 {
-    text-align: center;
-}
-/* Optional */
-/* .bg-white {
-  background-color: white;
-  padding: 25px;
-  border-style: inset;
-}
-.bg-grey {
-    background-color: grey;
-    padding: 25px;
-}
-.bg-orange {
-    background-color: orange;
-    padding: 25px;
-} */ */ */
 
 .bg-img {
     height: 100vh;
@@ -97,4 +63,4 @@
 
 h1 {
     color: black;
-} */
+}

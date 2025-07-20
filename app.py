@@ -106,7 +106,7 @@ def logout_user():
 
 #######################################################
 
-# user # 
+# add and edit workout form # 
 
 @app.route('/workouts')
 def workout():
@@ -139,6 +139,41 @@ def add_workout():
 
 #######################################################
 
+# add nutrition / add food #
+
+@app.route('/nutrition')
+def nutrition():
+    """Show workouts entered"""
+
+    food = Nutrition.query.all()
+    
+    return render_template('users/nutrition.html', food=food)
+
+@app.route('/add_food', methods=["GET", "POST"])
+def add_food():
+    """Add workout form"""
+
+    form = NutritionForm()
+
+    if form.validate_on_submit():
+        food = form.food.data
+        protein = form.protein.data
+        carbs = form.carbs.data
+        fats = form.fats.data
+        calories = form.calories.data
+        date = form.date.data
+            
+
+        food = Nutrition(food=food, protein=protein, carbs=carbs, fats=fats, calories=calories, date=date)
+
+        db.session.add(food)
+        db.session.commit()
+        return redirect('/nutrition')
+    else:
+        return render_template('users/add_food.html', form=form) 
+
+#######################################################
+
 # add exercisedb api #
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -149,10 +184,16 @@ def search_workouts():
     if request.method == 'POST':
         query = request.form['query']
         results = search_exercises(query)
+
         if results:
             app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
+            # ⬇️ Clean up the gifUrl for each result
+            for w in results:
+                url = w.get("gifUrl", "")
+                w["gifUrl"] = url.strip()  # Remove extra spaces
         else:
             app.logger.debug("No results returned")
+
     return render_template('search.html', query=query, results=results)
 
 

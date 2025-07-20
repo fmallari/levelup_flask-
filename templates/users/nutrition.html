@@ -1,0 +1,38 @@
+{% extends 'users/detail.html' %}
+{% block content %}
+
+<head>
+    <title>Nutrition Tracker</title>
+</head>
+<body>
+    
+
+    <div class="container">
+        <h1 class="display-2">Nutrition Tracker</h1>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <th>Food Name</th>
+                <th>Proteins</th>
+                <th>Carbohydrates</th>
+                <th>Fats</th>
+                <th>Calories</th>
+                <th>Date & Time</th>
+            </thead>
+            <tbody>
+                {% for food in food %}
+                <tr>
+                    <td>{{food.food}}</td>
+                    <td>{{food.protein}}</td>
+                    <td>{{food.carbs}}</td>
+                    <td>{{food.fats}}</td>
+                    <td>{{food.calories}}</td>
+                    <td>{{food.date}}</td>
+                {% endfor %}
+                </tr>
+            </tbody> 
+        </table>
+    <a href="/add_food" class="btn btn-success">Add Food</a>
+    </div>
+</body>
+</html>
+{% endblock %}
