@@ -1,8 +1,9 @@
+import os
 from flask import Flask, render_template, redirect, session, flash, g, request, url_for
+from werkzeug.utils import secure_filename
 from api_client import search_exercises, fetch_gif
 from models import connect_db, db, User, Workout, Nutrition
 from forms import UserForm, WorkoutForm, NutritionForm
-
 
 CURR_USER_KEY = "curr_user"
     
@@ -13,6 +14,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///levelup"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "fitness"
+
+# Configure file upload folder and allowed extensions
+app.config['UPLOAD_FOLDER'] = 'static/avatars'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 connect_db(app)
 
@@ -80,6 +85,41 @@ def show_profile():
         nutrition_entries=nutrition_entries
     )
 
+#######################################################
+
+# Add image upload handler #
+
+def allowed_file(filename):
+    """Check if the file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'profile_image' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    
+    file = request.files['profile_image']
+    
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    
+    if file and allowed_file(file.filename):
+        # Secure the filename and save it
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        # Update the user's profile image in the database
+        g.user.profile_image = filename
+        db.session.commit()
+
+        flash('Profile image updated successfully!')
+        return redirect('/profile')
+    
+    flash('Invalid file format')
+    return redirect(request.url)
 
 #######################################################
 
@@ -104,7 +144,7 @@ def register():
         session['user_id'] = new_user.id
 
         flash("Welcome! You have successfully created your profile")
-        return redirect('/profile')
+        return redirect('/profile') 
 
     return render_template('register.html', form=form)
 
@@ -134,7 +174,7 @@ def logout_user():
 
 #######################################################
 
-# add and edit workout form # 
+# add and delete workout # 
 
 @app.route('/workouts')
 def workout():
@@ -158,6 +198,11 @@ def add_workout():
         date = form.date.data
         work = Workout(exercise=exercise, weight=weight, reps=reps, sets=sets, date=date)
 
+        user_id = session.get("user_id")
+        if not user_id:
+            flash("You must be logged in")
+            return redirect('/login')
+
         db.session.add(work)
         db.session.commit()
         return redirect('/workouts')
@@ -175,7 +220,7 @@ def delete_workout(workout_id):
 
 #######################################################
 
-# add nutrition / add food #
+# add and delete nutrition #
 
 @app.route('/nutrition')
 def nutrition():
@@ -244,7 +289,6 @@ def search_workouts():
 def show_images():
     images = fetch_gif()
     return render_template('images.html', images=images)
-
 
 if __name__ == '__main__':
     app.secret_key = "some-secret-key"

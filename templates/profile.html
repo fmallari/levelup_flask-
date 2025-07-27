@@ -2,35 +2,65 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-  <h1>Profile Page</h1>
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <!-- Display user profile image -->
+        <img src="{{ url_for('static', filename='avatars/' + g.user.profile_image) }}" class="card-img-top" alt="User Avatar">
+        <div class="card-body">
+          <h5 class="card-title text-capitalize">{{ g.user.username }}</h5>
+          <p class="card-text text-muted">Member since: {{ g.user.created_at.strftime('%B %d, %Y') if g.user.created_at else 'N/A' }}</p>
+          <a href="{{ url_for('logout_user') }}" class="btn btn-outline-secondary btn-sm">Logout</a>
+        </div>
+      </div>
+    </div>
 
-  <h2>Recent Workouts</h2>
-  {% if workouts %}
-    <ul class="list-group">
-      {% for w in workouts %}
-        <li class="list-group-item">
-          <strong>{{ w.exercise|capitalize }}</strong> — {{ w.weight }} lbs × {{ w.sets }}×{{ w.reps }}
-          <span class="text-muted float-end">{{ w.date.strftime('%Y-%m-%d') }}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No workouts logged.</p>
-  {% endif %}
-  <a href="{{ url_for('add_workout') }}" class="btn btn-primary mt-2">Add Workout</a>
+    <div class="col-md-8">
+      <!-- Image Upload Form -->
+      <h4 class="mt-4">Upload Profile Image</h4>
+      <form action="{{ url_for('upload_image') }}" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}  <!-- Include CSRF token if using Flask-WTF -->
+        <div class="form-group">
+          <input type="file" name="profile_image" class="form-control-file" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
 
-  <h2 class="mt-4">Recent Nutrition</h2>
-  {% if nutrition_entries %}
-    <ul class="list-group">
-      {% for n in nutrition_entries %}
-        <li class="list-group-item">
-          <strong>{{ n.food|capitalize }}</strong> — {{ n.calories }} kcal
-          <span class="text-muted float-end">{{ n.date.strftime('%Y-%m-%d') }}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No nutrition entries yet.</p>
-  {% endif %}
-  <a href="{{ url_for('add_food') }}" class="btn btn-success mt-2">Add Nutrition</a>
+      <h4 class="mt-4">Recent Workouts</h4>
+      {% if workouts %}
+        <ul class="list-group mb-4">
+          {% for w in workouts[:5] %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ w.exercise|capitalize }}</strong><br>
+                {{ w.weight }} lbs × {{ w.sets }}×{{ w.reps }}
+              </div>
+              <small class="text-muted">{{ w.date.strftime('%Y-%m-%d') }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No workouts logged yet.</p>
+      {% endif %}
+
+      <h4>Recent Nutrition</h4>
+      {% if nutrition_entries %}
+        <ul class="list-group">
+          {% for n in nutrition_entries[:5] %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ n.food|capitalize }}</strong><br>
+                {{ n.calories }} kcal
+              </div>
+              <small class="text-muted">{{ n.date.strftime('%Y-%m-%d') }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No nutrition entries yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}
