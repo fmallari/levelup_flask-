@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, flash, g, request
+from flask import Flask, render_template, redirect, session, flash, g, request, url_for
 from api_client import search_exercises, fetch_gif
 from models import connect_db, db, User, Workout, Nutrition
 from forms import UserForm, WorkoutForm, NutritionForm
@@ -48,14 +48,42 @@ def do_logout():
 def home_page():
     return render_template('home.html')
 
+#######################################################
+
+# display workouts and nutrition on profile page # 
+
 @app.route('/profile', methods=["GET", "POST"])
 def show_profile():
     if "user_id" not in session:
         flash("Login required")
         return redirect('/login')
-    form = WorkoutForm()
 
-    return render_template('profile.html', form=form)
+    form = WorkoutForm()
+    user_id = session["user_id"]
+
+    workouts = (Workout
+                .query
+                .filter_by(user_id=user_id)
+                .order_by(Workout.date.desc())
+                .all())
+
+    nutrition_entries = (Nutrition
+                         .query
+                         .filter_by(user_id=user_id)
+                         .order_by(Nutrition.date.desc())
+                         .all())
+
+    return render_template(
+        'profile.html',
+        form=form,
+        workouts=workouts,
+        nutrition_entries=nutrition_entries
+    )
+
+
+#######################################################
+
+# register/login form # 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -137,6 +165,14 @@ def add_workout():
     else:
         return render_template('users/add_workout.html', form=form)
 
+@app.route('/workouts/delete/<int:workout_id>', methods=['POST'])
+def delete_workout(workout_id):
+    workout = Workout.query.get_or_404(workout_id)
+    db.session.delete(workout)
+    db.session.commit()
+    return redirect(url_for('workout')) 
+
+
 #######################################################
 
 # add nutrition / add food #
@@ -162,7 +198,7 @@ def add_food():
         fats = form.fats.data
         calories = form.calories.data
         date = form.date.data
-            
+
 
         food = Nutrition(food=food, protein=protein, carbs=carbs, fats=fats, calories=calories, date=date)
 
@@ -171,6 +207,13 @@ def add_food():
         return redirect('/nutrition')
     else:
         return render_template('users/add_food.html', form=form) 
+
+@app.route('/nutrition/delete/<int:food_id>', methods=['POST'])
+def delete_food(food_id):
+    food = Nutrition.query.get_or_404(food_id)
+    db.session.delete(food)
+    db.session.commit()
+    return redirect(url_for('nutrition'))
 
 #######################################################
 
