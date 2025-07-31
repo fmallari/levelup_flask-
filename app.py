@@ -186,8 +186,6 @@ def workout():
 
 @app.route('/add_workout', methods=["GET", "POST"])
 def add_workout():
-    """Add workout form"""
-
     form = WorkoutForm()
 
     if form.validate_on_submit():
@@ -196,19 +194,27 @@ def add_workout():
         reps = form.reps.data
         sets = form.sets.data
         date = form.date.data
-        work = Workout(exercise=exercise, weight=weight, reps=reps, sets=sets, date=date)
 
         user_id = session.get("user_id")
         if not user_id:
-            flash("You must be logged in")
+            flash("You must be logged in.")
             return redirect('/login')
+
+        work = Workout(
+            exercise=exercise,
+            weight=weight,
+            reps=reps,
+            sets=sets,
+            date=date,
+            user_id=user_id  # 🔑 this is critical
+        )
 
         db.session.add(work)
         db.session.commit()
-        return redirect('/workouts')
+        return redirect('/profile')
 
-    else:
-        return render_template('users/add_workout.html', form=form)
+    return render_template('users/add_workout.html', form=form)
+
 
 @app.route('/workouts/delete/<int:workout_id>', methods=['POST'])
 def delete_workout(workout_id):
@@ -232,8 +238,6 @@ def nutrition():
 
 @app.route('/add_food', methods=["GET", "POST"])
 def add_food():
-    """Add workout form"""
-
     form = NutritionForm()
 
     if form.validate_on_submit():
@@ -244,14 +248,27 @@ def add_food():
         calories = form.calories.data
         date = form.date.data
 
+        user_id = session.get("user_id")
+        if not user_id:
+            flash("You must be logged in.")
+            return redirect('/login')
 
-        food = Nutrition(food=food, protein=protein, carbs=carbs, fats=fats, calories=calories, date=date)
+        food = Nutrition(
+            food=food,
+            protein=protein,
+            carbs=carbs,
+            fats=fats,
+            calories=calories,
+            date=date,
+            user_id=user_id  # 🔑 this is critical
+        )
 
         db.session.add(food)
         db.session.commit()
-        return redirect('/nutrition')
-    else:
-        return render_template('users/add_food.html', form=form) 
+        return redirect('/profile')
+
+    return render_template('users/add_food.html', form=form)
+
 
 @app.route('/nutrition/delete/<int:food_id>', methods=['POST'])
 def delete_food(food_id):
@@ -293,5 +310,3 @@ def show_images():
 if __name__ == '__main__':
     app.secret_key = "some-secret-key"
     app.run(debug=True)
-
-
