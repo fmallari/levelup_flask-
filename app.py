@@ -55,6 +55,57 @@ def home_page():
 
 #######################################################
 
+# register/login form # 
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = UserForm()
+    if form.validate_on_submit():
+        name = form.username.data
+        pwd = form.password.data
+
+        # check if user already exists
+        existing_user = User.query.filter_by(username=name).first()
+        if existing_user:
+            flash("Username already taken. Please choose another one.")
+            return render_template('register.html', form=form)
+
+        new_user = User.register(name, pwd)
+        db.session.add(new_user)
+        db.session.commit()
+        session['user_id'] = new_user.id
+
+        flash("Welcome! You have successfully created your profile")
+        return redirect('/profile') 
+
+    return render_template('register.html', form=form)
+
+
+@app.route('/login', methods=['GET','POST'])
+def login_user():
+    form = UserForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        
+        user = User.authenticate(username, password)
+        if user:
+            flash(f"Welcome Back, {user.username}!")
+            session['user_id'] = user.id
+            return redirect('/profile')
+        else:
+            form.username.errors = ['Invalid username/password']
+
+    return render_template('/login.html', form=form)
+
+@app.route('/logout')
+def logout_user():
+    session.pop('user_id')
+    flash("Successfully logged out")
+    return redirect('/login')    
+
+#######################################################
+
 # display workouts and nutrition on profile page # 
 
 @app.route('/profile', methods=["GET", "POST"])
@@ -120,57 +171,6 @@ def upload_image():
     
     flash('Invalid file format')
     return redirect(request.url)
-
-#######################################################
-
-# register/login form # 
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = UserForm()
-    if form.validate_on_submit():
-        name = form.username.data
-        pwd = form.password.data
-
-        # check if user already exists
-        existing_user = User.query.filter_by(username=name).first()
-        if existing_user:
-            flash("Username already taken. Please choose another one.")
-            return render_template('register.html', form=form)
-
-        new_user = User.register(name, pwd)
-        db.session.add(new_user)
-        db.session.commit()
-        session['user_id'] = new_user.id
-
-        flash("Welcome! You have successfully created your profile")
-        return redirect('/profile') 
-
-    return render_template('register.html', form=form)
-
-
-@app.route('/login', methods=['GET','POST'])
-def login_user():
-    form = UserForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        
-        user = User.authenticate(username, password)
-        if user:
-            flash(f"Welcome Back, {user.username}!")
-            session['user_id'] = user.id
-            return redirect('/profile')
-        else:
-            form.username.errors = ['Invalid username/password']
-
-    return render_template('/login.html', form=form)
-
-@app.route('/logout')
-def logout_user():
-    session.pop('user_id')
-    flash("Successfully logged out")
-    return redirect('/login')    
 
 #######################################################
 
@@ -285,27 +285,26 @@ def delete_food(food_id):
 def search_workouts():
     results = []
     query = ""
-    
     if request.method == 'POST':
         query = request.form['query']
         results = search_exercises(query)
-
         if results:
             app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
-            # ⬇️ Clean up the gifUrl for each result
             for w in results:
-                url = w.get("gifUrl", "")
-                w["gifUrl"] = url.strip()  # Remove extra spaces
+                url = w.get("gifUrl") or ""
+                url = url.strip()
+                # Optional: validate URL
+                w["gifUrl"] = url if url.startswith("http") else None
         else:
             app.logger.debug("No results returned")
-
     return render_template('search.html', query=query, results=results)
 
 
-@app.route('/images')
-def show_images():
-    images = fetch_gif()
-    return render_template('images.html', images=images)
+
+# @app.route('/images')
+# def show_images():
+#     images = fetch_gif()
+#     return render_template('images.html', images=images)
 
 if __name__ == '__main__':
     app.secret_key = "some-secret-key"
