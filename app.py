@@ -34,14 +34,14 @@ def add_user_to_g():
     else:
         g.user = None
 
-def home():
-    return "hello world!"
+# def home():
+#     return "hello world!"
 
 def do_login(user):
     """Log in user"""
 
     session[CURR_USER_KEY] = user.id
-    return render_template('login.html')
+    # return render_template('login.html')
 
 def do_logout():
     """Logout user"""
@@ -174,6 +174,27 @@ def upload_image():
 
 #######################################################
 
+# edit profile name # 
+
+@app.route('/edit_profile_name', methods=["POST"])
+def edit_profile_name():
+    if "user_id" not in session:
+        flash("Login required")
+        return redirect('/login')
+
+    user_id = session["user_id"]
+    user = User.query.get(user_id)
+    
+    # Update the username
+    user.username = request.form['username']
+    db.session.commit()
+
+    flash("Profile name updated successfully!")
+    return redirect('/profile')
+
+
+#######################################################
+
 # add and delete workout # 
 
 @app.route('/workouts')
@@ -288,12 +309,14 @@ def search_workouts():
     if request.method == 'POST':
         query = request.form['query']
         results = search_exercises(query)
+
         if results:
             app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
             for w in results:
                 url = w.get("gifUrl") or ""
                 url = url.strip()
-                # Optional: validate URL
+                
+                # validate URL #
                 w["gifUrl"] = url if url.startswith("http") else None
         else:
             app.logger.debug("No results returned")

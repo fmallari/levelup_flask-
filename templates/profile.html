@@ -4,40 +4,48 @@
 {% block content %}
 <div class="container mt-4">
   <div class="row">
-    <!-- Profile Section -->
-    <div class="col-md-4 text-center mb-4">
+
+    <!-- Left Column: Profile Section (Profile Image, Name, and Edit Form) -->
+    <div class="col-md-4 mb-4">
       <div class="card shadow-sm">
-        
-        <!-- Profile Image with Hover Effect -->
-        <label for="profile_image_input" class="d-block">
-          <img src="{{ url_for('static', filename='avatars/' + g.user.profile_image) }}" 
-               class="rounded-circle" alt="User Avatar" 
-               style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
-        </label>
-        
-        <!-- Hidden File Input (Triggers on Image Click) -->
-        <input type="file" id="profile_image_input" name="profile_image" 
-               class="form-control-file position-absolute top-50 start-50 translate-middle" 
-               style="opacity: 0; cursor: pointer;" required>
-        
-        <div class="card-body">
-          <h5 class="card-title text-capitalize">{{ g.user.username }}</h5>
+
+        <!-- Profile Image with Hover Banner -->
+        <div class="position-relative d-flex justify-content-center mt-3">
+          <label for="profile_image_input" class="d-block position-relative">
+            <img src="{{ url_for('static', filename='avatars/' + g.user.profile_image) }}" 
+                 class="rounded-circle" alt="User Avatar" 
+                 style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                 
+            <!-- Transparent Overlay with Upload Photo Text -->
+            <div class="overlay text-center d-flex justify-content-center align-items-center">
+              <span class="text-white" style="font-size: 1.2rem; font-weight: bold;">Upload Photo</span>
+            </div>
+          </label>
+          
+          <!-- Hidden File Input (Triggers on Image Click) -->
+          <input type="file" id="profile_image_input" name="profile_image" 
+                 class="form-control-file position-absolute top-50 start-50 translate-middle" 
+                 style="opacity: 0; cursor: pointer;" required>
+        </div>
+
+        <!-- Profile Name Edit Form -->
+        <div class="card-body text-center">
+          <form action="{{ url_for('edit_profile_name') }}" method="POST">
+            <div class="form-group">
+              <label for="username">Profile Name</label>
+              <input type="text" id="username" name="username" class="form-control" value="{{ g.user.username }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3 w-100">Save Name</button>
+          </form>
+
+          <h5 class="card-title text-capitalize mt-3">{{ g.user.username }}</h5>
           <p class="card-text text-muted">Member since: {{ g.user.created_at.strftime('%B %d, %Y') if g.user.created_at else 'N/A' }}</p>
           <a href="{{ url_for('logout_user') }}" class="btn btn-outline-secondary btn-sm">Logout</a>
         </div>
       </div>
-      <!-- Image Upload Form -->
-      <h5 class="mt-4 mb-3" style="font-size: 1rem;">Upload Profile Image</h5> 
-      <form action="{{ url_for('upload_image') }}" method="POST" enctype="multipart/form-data" class="mb-4">
-        {{ form.hidden_tag() }}  <!-- Include CSRF token if using Flask-WTF -->
-        <div class="form-group">
-          <input type="file" name="profile_image" class="form-control-file" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Upload</button> 
-      </form>
     </div>
 
-    <!-- Workouts and Nutrition Section -->
+    <!-- Right Column: Workouts and Nutrition Entries Section -->
     <div class="col-md-8">
       <!-- Recent Workouts Section -->
       <h4 class="mb-3">Recent Workouts</h4>

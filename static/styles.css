@@ -1,4 +1,4 @@
-body{
+/* body{
     margin: 0;
     padding: 0;
     background-color: whitesmoke;
@@ -63,4 +63,30 @@ body{
 
 h1 {
     color: black;
+} */
+
+/* Positioning the overlay over the profile image */
+.position-relative {
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+
+.position-relative:hover .overlay {
+    opacity: 1; /* Show overlay on hover */
+}
+
+.overlay span {
+    pointer-events: none;
+    z-index: 2; /* Ensure the text is above the image */
 }
