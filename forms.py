@@ -15,6 +15,7 @@ class UserForm(FlaskForm):
     username = StringField("Username", validators=[InputRequired()])
     password = PasswordField("Password", validators=[InputRequired()])
 
+
 class WorkoutForm(FlaskForm):
     """Workout Post to li"""
     exercise = StringField("Exercise Name")

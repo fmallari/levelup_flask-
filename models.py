@@ -50,16 +50,17 @@ class User(db.Model):
     # other columns and methods...
 
     @classmethod
-    def register(cls, username, password):
+    def register(cls, username, password, profile_image=None):
         """Register user with hashed pwd and return user"""
 
         hashed = bcrypt.generate_password_hash(password)
+        hashed_utf8 = hashed.decode("UTF-8")
 
-        # turn bytestring into normal unicode utf8 string
-        hashed_utf8 = hashed.decode("utf8")
-
-        # return instance of user with username and hashed pwd
-        return cls(username=username, password=hashed_utf8)
+        return cls(
+            username=username,
+            password=hashed_utf8,
+            profile_image=profile_image
+        )
 
     @classmethod
     def authenticate(cls, username, password):

@@ -1,4 +1,4 @@
-#!/Users/francismallari/Desktop/flask_project/venv/bin/python3
+#!/Users/maxstevenson/Dev/levelup_flask-/venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
