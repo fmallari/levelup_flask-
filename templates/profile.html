@@ -5,30 +5,36 @@
 <div class="container mt-4">
   <div class="row">
 
-    <!-- Left Column: Profile Section (Profile Image, Name, and Edit Form) -->
+    
     <div class="col-md-4 mb-4">
       <div class="card shadow-sm">
 
-        <!-- Profile Image with Hover Banner -->
+
         <div class="position-relative d-flex justify-content-center mt-3">
-          <label for="profile_image_input" class="d-block position-relative">
-            <img src="{{ url_for('static', filename='avatars/' + g.user.profile_image) }}" 
-                 class="rounded-circle" alt="User Avatar" 
-                 style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
-                 
-            <!-- Transparent Overlay with Upload Photo Text -->
-            <div class="overlay text-center d-flex justify-content-center align-items-center">
-              <span class="text-white" style="font-size: 1.2rem; font-weight: bold;">Upload Photo</span>
-            </div>
-          </label>
-          
-          <!-- Hidden File Input (Triggers on Image Click) -->
-          <input type="file" id="profile_image_input" name="profile_image" 
-                 class="form-control-file position-absolute top-50 start-50 translate-middle" 
-                 style="opacity: 0; cursor: pointer;" required>
+          <form action="{{ url_for('upload_image') }}" method="POST" enctype="multipart/form-data">
+            {%- if form and form.csrf_token %}
+              {{ form.csrf_token }}
+            {%- endif %}
+            <label for="profile_image_input" class="d-block position-relative">
+              {% if user and user.profile_image %}
+              <img src="{{ url_for('static', filename='avatars/' + user.profile_image) }}?v={{ range(100000, 999999)|random }}" class="profile-image rounded-circle" alt="User Avatar" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+              {% else %}
+              <img src="{{ url_for('static', filename='avatars/default.png') }}" class="profile-image rounded-circle" alt="User Avatar" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+              {% endif %}
+             
+              <div class="overlay text-center d-flex justify-content-center align-items-center">
+                <span class="text-white" style="font-size: 1.2rem; font-weight: bold;">Upload Photo</span>
+              </div>
+            </label>
+            
+            <input type="file" id="profile_image_input" name="profile_image"
+                   class="form-control-file position-absolute top-50 start-50 translate-middle"
+                   style="opacity: 0; cursor: pointer;"
+                   onchange="this.form.submit();">
+          </form>
         </div>
 
-        <!-- Profile Name Edit Form -->
+        
         <div class="card-body text-center">
           <form action="{{ url_for('edit_profile_name') }}" method="POST">
             <div class="form-group">
@@ -45,9 +51,9 @@
       </div>
     </div>
 
-    <!-- Right Column: Workouts and Nutrition Entries Section -->
+    
     <div class="col-md-8">
-      <!-- Recent Workouts Section -->
+      
       <h4 class="mb-3">Recent Workouts</h4>
       {% if workouts %}
         <div class="card mb-4">
@@ -57,17 +63,17 @@
                 <div>
                   <strong>{{ w.exercise|capitalize }}</strong><br>
                   {{ w.weight }} lbs × {{ w.sets }}×{{ w.reps }}
-                </div>
+            </div>
                 <small class="text-muted">{{ w.date.strftime('%Y-%m-%d') }}</small>
               </a>
             {% endfor %}
-          </div>
+            </div>
         </div>
       {% else %}
         <p class="text-muted">No workouts logged yet.</p>
       {% endif %}
 
-      <!-- Recent Nutrition Section -->
+      
       <h4 class="mb-3">Recent Nutrition</h4>
       {% if nutrition_entries %}
         <div class="card">
@@ -81,12 +87,13 @@
                 <small class="text-muted">{{ n.date.strftime('%Y-%m-%d') }}</small>
               </a>
             {% endfor %}
-          </div>
         </div>
+      </div>
       {% else %}
         <p class="text-muted">No nutrition entries yet.</p>
       {% endif %}
     </div>
+
   </div>
 </div>
 {% endblock %}
