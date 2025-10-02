@@ -12,8 +12,8 @@
         <!-- Profile Image with Hover Banner -->
         <div class="position-relative d-flex justify-content-center mt-3">
           <label for="profile_image_input" class="d-block position-relative">
-            <img src="{{ url_for('static', filename='avatars/' + g.user.profile_image) }}" 
-                 class="rounded-circle" alt="User Avatar" 
+            <img src="{{ url_for('static', filename='avatars/' + (g.user.profile_image if g.user else 'default.jpg')) }}"
+                class="rounded-circle" alt="Profile Image"
                  style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
                  
             <!-- Transparent Overlay with Upload Photo Text -->

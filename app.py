@@ -28,6 +28,13 @@ connect_db(app)
 def add_user_to_g():
     """If logged in, add curr user to Flask global"""
 
+    user_id = session.get('user_id')
+    if user_id:
+        g.user = User.query.get(user_id)
+    else:
+        g.user = None
+
+
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
 
