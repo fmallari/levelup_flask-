@@ -20,7 +20,8 @@ class Workout(db.Model):
     sets = db.Column(db.Integer, nullable=False, default=3)
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', backref="workout")
 
@@ -34,7 +35,8 @@ class Nutrition(db.Model):
     fats = db.Column(db.Integer, nullable=False)
     calories = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', backref="nutrition")
 
@@ -76,4 +78,3 @@ class User(db.Model):
             return u
         else:
             return False
-

@@ -6,7 +6,7 @@ from models import connect_db, db, User, Workout, Nutrition
 from forms import UserForm, WorkoutForm, NutritionForm
 
 CURR_USER_KEY = "curr_user"
-    
+
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
@@ -26,29 +26,27 @@ connect_db(app)
 
 @app.before_request
 def add_user_to_g():
-    """If logged in, add curr user to Flask global"""
+    g.user = None
+    uid = session.get("user_id")
+    if uid:
+        g.user = User.query.get(uid)
+# def add_user_to_g():
+#     """If logged in, add curr user to Flask global"""
 
-    user_id = session.get('user_id')
-    if user_id:
-        g.user = User.query.get(user_id)
-    else:
-        g.user = None
+#     if CURR_USER_KEY in session:
+#         g.user = User.query.get(session[CURR_USER_KEY])
 
+#     else:
+#         g.user = None
 
-    if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
-
-    else:
-        g.user = None
-
-# def home():
-#     return "hello world!"
+def home():
+    return "hello world!"
 
 def do_login(user):
     """Log in user"""
 
     session[CURR_USER_KEY] = user.id
-    # return render_template('login.html')
+    return render_template('login.html')
 
 def do_logout():
     """Logout user"""
@@ -59,6 +57,115 @@ def do_logout():
 @app.route('/')
 def home_page():
     return render_template('home.html')
+
+#######################################################
+
+# display workouts and nutrition on profile page # 
+
+@app.route('/profile', methods=["GET", "POST"])
+def show_profile():
+    if "user_id" not in session:
+        flash("Login required")
+        return redirect('/login')
+
+    form = WorkoutForm()
+    user_id = session["user_id"]
+
+    workouts = (Workout
+                .query
+                .filter_by(user_id=user_id)
+                .order_by(Workout.date.desc())
+                .all())
+
+    nutrition_entries = (Nutrition
+                         .query
+                         .filter_by(user_id=user_id)
+                         .order_by(Nutrition.date.desc())
+                         .all())
+    user = User.query.get(user_id)
+    return render_template(
+        'profile.html',
+        form=form,
+        workouts=workouts,
+        nutrition_entries=nutrition_entries
+    )
+
+# this is the image upload handler #
+
+def allowed_file(filename):
+    """Check if the file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'profile_image' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    
+    file = request.files['profile_image']
+    
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    
+    if file and allowed_file(file.filename):
+       
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('User not logged in')
+            return redirect('/login')
+        user = User.query.get(user_id)
+        if not user:
+            flash('User not found')
+            return redirect('/login')
+        user.profile_image = filename
+        db.session.commit()
+
+        flash('Profile image updated successfully!')
+        return redirect('/profile')
+    
+    flash('Invalid file format')
+    return redirect(request.url)
+
+#######################################################
+
+# Add image upload handler #
+
+# def allowed_file(filename):
+#     """Check if the file extension is allowed"""
+#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# @app.route('/upload_image', methods=['POST'])
+# def upload_image():
+#     if 'profile_image' not in request.files:
+#         flash('No file part')
+#         return redirect(request.url)
+
+#     file = request.files['profile_image']
+
+#     if file.filename == '':
+#         flash('No selected file')
+#         return redirect(request.url)
+
+#     if file and allowed_file(file.filename):
+#         # Secure the filename and save it
+#         filename = secure_filename(file.filename)
+#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#         file.save(file_path)
+
+#         # Update the user's profile image in the database
+#         g.user.profile_image = filename
+#         db.session.commit()
+
+#         flash('Profile image updated successfully!')
+#         return redirect('/profile')
+
+#     flash('Invalid file format')
+#     return redirect(request.url)
 
 #######################################################
 
@@ -94,7 +201,7 @@ def login_user():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        
+
         user = User.authenticate(username, password)
         if user:
             flash(f"Welcome Back, {user.username}!")
@@ -113,95 +220,6 @@ def logout_user():
 
 #######################################################
 
-# display workouts and nutrition on profile page # 
-
-@app.route('/profile', methods=["GET", "POST"])
-def show_profile():
-    if "user_id" not in session:
-        flash("Login required")
-        return redirect('/login')
-
-    form = WorkoutForm()
-    user_id = session["user_id"]
-
-    workouts = (Workout
-                .query
-                .filter_by(user_id=user_id)
-                .order_by(Workout.date.desc())
-                .all())
-
-    nutrition_entries = (Nutrition
-                         .query
-                         .filter_by(user_id=user_id)
-                         .order_by(Nutrition.date.desc())
-                         .all())
-
-    return render_template(
-        'profile.html',
-        form=form,
-        workouts=workouts,
-        nutrition_entries=nutrition_entries
-    )
-
-#######################################################
-
-# Add image upload handler #
-
-def allowed_file(filename):
-    """Check if the file extension is allowed"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/upload_image', methods=['POST'])
-def upload_image():
-    if 'profile_image' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    
-    file = request.files['profile_image']
-    
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-    
-    if file and allowed_file(file.filename):
-        # Secure the filename and save it
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        # Update the user's profile image in the database
-        g.user.profile_image = filename
-        db.session.commit()
-
-        flash('Profile image updated successfully!')
-        return redirect('/profile')
-    
-    flash('Invalid file format')
-    return redirect(request.url)
-
-#######################################################
-
-# edit profile name # 
-
-@app.route('/edit_profile_name', methods=["POST"])
-def edit_profile_name():
-    if "user_id" not in session:
-        flash("Login required")
-        return redirect('/login')
-
-    user_id = session["user_id"]
-    user = User.query.get(user_id)
-    
-    # Update the username
-    user.username = request.form['username']
-    db.session.commit()
-
-    flash("Profile name updated successfully!")
-    return redirect('/profile')
-
-
-#######################################################
-
 # add and delete workout # 
 
 @app.route('/workouts')
@@ -214,6 +232,8 @@ def workout():
 
 @app.route('/add_workout', methods=["GET", "POST"])
 def add_workout():
+    """Add workout form"""
+
     form = WorkoutForm()
 
     if form.validate_on_submit():
@@ -222,9 +242,11 @@ def add_workout():
         reps = form.reps.data
         sets = form.sets.data
         date = form.date.data
+        work = Workout(exercise=exercise, weight=weight, reps=reps, sets=sets, date=date)
 
         user_id = session.get("user_id")
         if not user_id:
+            flash("You must be logged in")
             flash("You must be logged in.")
             return redirect('/login')
 
@@ -239,10 +261,10 @@ def add_workout():
 
         db.session.add(work)
         db.session.commit()
+        return redirect('/workouts')
         return redirect('/profile')
 
     return render_template('users/add_workout.html', form=form)
-
 
 @app.route('/workouts/delete/<int:workout_id>', methods=['POST'])
 def delete_workout(workout_id):
@@ -261,11 +283,13 @@ def nutrition():
     """Show workouts entered"""
 
     food = Nutrition.query.all()
-    
+
     return render_template('users/nutrition.html', food=food)
 
 @app.route('/add_food', methods=["GET", "POST"])
 def add_food():
+    """Add workout form"""
+
     form = NutritionForm()
 
     if form.validate_on_submit():
@@ -281,6 +305,7 @@ def add_food():
             flash("You must be logged in.")
             return redirect('/login')
 
+        food = Nutrition(food=food, protein=protein, carbs=carbs, fats=fats, calories=calories, date=date)
         food = Nutrition(
             food=food,
             protein=protein,
@@ -293,6 +318,9 @@ def add_food():
 
         db.session.add(food)
         db.session.commit()
+        return redirect('/nutrition')
+    else:
+        return render_template('users/add_food.html', form=form) 
         return redirect('/profile')
 
     return render_template('users/add_food.html', form=form)
@@ -313,29 +341,31 @@ def delete_food(food_id):
 def search_workouts():
     results = []
     query = ""
+
     if request.method == 'POST':
         query = request.form['query']
         results = search_exercises(query)
 
         if results:
             app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
+            # ⬇️ Clean up the gifUrl for each result
             for w in results:
-                url = w.get("gifUrl") or ""
-                url = url.strip()
-                
-                # validate URL #
-                w["gifUrl"] = url if url.startswith("http") else None
+                url = w.get("gifUrl", "")
+                w["gifUrl"] = url.strip()  # Remove extra spaces
         else:
             app.logger.debug("No results returned")
+
     return render_template('search.html', query=query, results=results)
 
 
-
-# @app.route('/images')
-# def show_images():
-#     images = fetch_gif()
-#     return render_template('images.html', images=images)
+@app.route('/images')
+def show_images():
+    images = fetch_gif()
+    return render_template('images.html', images=images)
 
 if __name__ == '__main__':
     app.secret_key = "some-secret-key"
+    app.run(debug=True)
+
+
     app.run(debug=True)
