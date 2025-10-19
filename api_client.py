@@ -11,6 +11,7 @@ headers = {
 }
 
 def search_exercises(query):
+
     url = f"https://{RAPIDAPI_HOST}/exercises/name/{query}"
     response = requests.get(url, headers=headers)
     return response.json() if response.status_code == 200 else []
@@ -30,10 +31,10 @@ def fetch_gif():
         # Return an empty list if something goes wrong
         return []
 
-def fetch_giphy_gif(query):
-    url = "https://api.giphy.com/v1/gifs/search"
-    params = {"q": query, "api_key": GIPHY_KEY, "limit": 1}
-    resp = requests.get(url, params=params)
-    if resp.status_code == 200 and resp.json()["data"]:
-        return resp.json()["data"][0]["images"]["downsized_medium"]["url"]
-    return None
+# def fetch_giphy_gif(query):
+#     url = "https://api.giphy.com/v1/gifs/search"
+#     params = {"q": query, "api_key": GIPHY_KEY, "limit": 1}
+#     resp = requests.get(url, params=params)
+#     if resp.status_code == 200 and resp.json()["data"]:
+#         return resp.json()["data"][0]["images"]["downsized_medium"]["url"]
+#     return None

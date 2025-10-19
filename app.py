@@ -348,7 +348,8 @@ def search_workouts():
 
         if results:
             app.logger.debug(f"Keys in workout: {list(results[0].keys())}")
-            # ⬇️ Clean up the gifUrl for each result
+            
+            # Clean up the gifUrl for each result
             for w in results:
                 url = w.get("gifUrl", "")
                 w["gifUrl"] = url.strip()  # Remove extra spaces
