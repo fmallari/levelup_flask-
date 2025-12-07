@@ -1,28 +1,24 @@
 from models import User, Workout
 
 def test_create_user(db_session):
-    u = User(username="testuser", password="another1")
+    u = User(email="test@test.com", password="hashedpass", username="testuser")  # include required fields
     db_session.session.add(u)
     db_session.session.commit()
+
     got = User.query.first()
-    assert.got.username == "testuser"
+    assert got is not None
+    assert got.email == "test@test.com"
+    assert got.username == "tester100" 
 
 def test_workout_relationship(db_session):
-    u = User(username="workoutuser", password="workout1")
+    u = User(email="a@a.com", password="pass", username="alpha")  # include required fields
     db_session.session.add(u)
     db_session.session.commit()
 
-    w = Workout(
-        user_id=u.id,
-        exercise_name="Push Up",
-        sets=3,
-        reps=15,
-        date="2024-01-01"
-    )
+    w = Workout(name="Bench Press", reps=10, weight=135, user_id=u.id)
     db_session.session.add(w)
     db_session.session.commit()
 
-    got_user = User.query.filter_by(username="workoutuser").first()
-    assert len(got_user.workouts) == 1
-    assert got_user.workouts[0].exercise_name == "Push Up"
-
+    got = Workout.query.first()
+    assert got is not None
+    assert got.user.email == "a@a.com"
